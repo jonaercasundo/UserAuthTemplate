@@ -13,6 +13,8 @@ use App\Models\Approval;
 use App\Models\InventoryAlert;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
 {
@@ -21,7 +23,7 @@ class DashboardController extends Controller
      */
     public function index()
     {
-        $user = auth()->user();
+        $user = Auth::user();
 
         // Daily Order Summary
         $dailyOrders = Order::whereDate('order_date', today())->get();
@@ -102,7 +104,7 @@ class DashboardController extends Controller
                 ->count(),
             'low_stock_items' => Inventory::whereRaw('quantity_available <= minimum_stock_level')->count(),
             'delayed_deliveries' => Delivery::where('status', 'delayed')->count(),
-            'total_inventory_value' => Inventory::sum(\DB::raw('quantity_on_hand * unit_price')),
+            'total_inventory_value' => Inventory::sum(DB::raw('quantity_on_hand * unit_price')),
             'pending_approvals' => Approval::where('status', 'pending')->count(),
             'unresolved_damages' => DamagedItem::where('status', '!=', 'resolved')->count(),
         ];
