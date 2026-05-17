@@ -40,5 +40,13 @@ class DatabaseSeeder extends Seeder
             ApprovalSeeder::class,
             InventoryAlertSeeder::class,
         ]);
+
+        // Warehouse Management Seeders
+        $this->call([
+            StockReceivingSeeder::class,
+            BatchTrackingSeeder::class,
+            SerialNumberTrackingSeeder::class,
+            BarcodeScanSeeder::class,
+        ]);
     }
 }

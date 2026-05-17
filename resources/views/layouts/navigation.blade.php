@@ -39,6 +39,11 @@
                             :active="request()->routeIs('operation.dashboard')">
                             Dashboard
                         </x-nav-link>
+
+                        <x-nav-link :href="route('warehouse.dashboard')"
+                            :active="request()->routeIs('warehouse.*')">
+                            Warehouse Management Module
+                        </x-nav-link>
                     @endrole
 
                     <!-- User Access Registration -->

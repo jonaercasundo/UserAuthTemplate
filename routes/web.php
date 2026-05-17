@@ -5,6 +5,7 @@
     use App\Http\Controllers\EmployeeController;
     use App\Http\Controllers\Operations\WarehouseController;
     use App\Http\Controllers\Operations\DashboardController;
+    use App\Http\Controllers\Warehouse\WarehouseManagementController;
 
     /*
     |--------------------------------------------------------------------------
@@ -104,6 +105,97 @@
 
             Route::post('/', [WarehouseController::class, 'store'])
                 ->name('warehouse.store');
+        });
+
+    /*
+    |--------------------------------------------------------------------------
+    | WAREHOUSE MANAGEMENT (Warehouse Operations)
+    |--------------------------------------------------------------------------
+    */
+
+    Route::middleware(['auth', 'role:Operations'])
+        ->prefix('warehouse')
+        ->group(function () {
+
+            // Dashboard
+            Route::get('/', [WarehouseManagementController::class, 'dashboard'])
+                ->name('warehouse.dashboard');
+
+            // Stock Receiving
+            Route::prefix('receiving')->group(function () {
+                Route::get('/', [WarehouseManagementController::class, 'showReceiving'])
+                    ->name('warehouse.receiving.index');
+                Route::get('/create', [WarehouseManagementController::class, 'createReceiving'])
+                    ->name('warehouse.receiving.create');
+            });
+
+            // Stock Release
+            Route::prefix('release')->group(function () {
+                Route::get('/', [WarehouseManagementController::class, 'showRelease'])
+                    ->name('warehouse.release.index');
+                Route::get('/create', [WarehouseManagementController::class, 'createRelease'])
+                    ->name('warehouse.release.create');
+            });
+
+            // Warehouse Transfer
+            Route::prefix('transfer')->group(function () {
+                Route::get('/', [WarehouseManagementController::class, 'showTransfer'])
+                    ->name('warehouse.transfer.index');
+                Route::get('/create', [WarehouseManagementController::class, 'createTransfer'])
+                    ->name('warehouse.transfer.create');
+            });
+
+            // Item Pull Out
+            Route::prefix('pullout')->group(function () {
+                Route::get('/', [WarehouseManagementController::class, 'showPullOut'])
+                    ->name('warehouse.pullout.index');
+                Route::get('/create', [WarehouseManagementController::class, 'createPullOut'])
+                    ->name('warehouse.pullout.create');
+            });
+
+            // Stock Adjustment
+            Route::prefix('adjustment')->group(function () {
+                Route::get('/', [WarehouseManagementController::class, 'showAdjustment'])
+                    ->name('warehouse.adjustment.index');
+                Route::get('/create', [WarehouseManagementController::class, 'createAdjustment'])
+                    ->name('warehouse.adjustment.create');
+            });
+
+            // Cycle Counting
+            Route::prefix('counting')->group(function () {
+                Route::get('/', [WarehouseManagementController::class, 'showCounting'])
+                    ->name('warehouse.counting.index');
+                Route::get('/create', [WarehouseManagementController::class, 'createCounting'])
+                    ->name('warehouse.counting.create');
+            });
+
+            // Barcode Scanning
+            Route::prefix('barcode')->group(function () {
+                Route::get('/', [WarehouseManagementController::class, 'showBarcodeScan'])
+                    ->name('warehouse.barcode.index');
+            });
+
+            // QR Code Scanning
+            Route::prefix('qrcode')->group(function () {
+                Route::get('/', [WarehouseManagementController::class, 'showQRCodeScan'])
+                    ->name('warehouse.qrcode.index');
+            });
+
+            // Batch Tracking
+            Route::prefix('batch')->group(function () {
+                Route::get('/', [WarehouseManagementController::class, 'showBatchTracking'])
+                    ->name('warehouse.batch.index');
+                Route::get('/{id}', [WarehouseManagementController::class, 'showBatchDetail'])
+                    ->name('warehouse.batch.detail');
+            });
+
+            // Serial Number Tracking
+            Route::prefix('serial')->group(function () {
+                Route::get('/', [WarehouseManagementController::class, 'showSerialTracking'])
+                    ->name('warehouse.serial.index');
+                Route::get('/{id}', [WarehouseManagementController::class, 'showSerialDetail'])
+                    ->name('warehouse.serial.detail');
+            });
         });
 
     require __DIR__.'/auth.php';
