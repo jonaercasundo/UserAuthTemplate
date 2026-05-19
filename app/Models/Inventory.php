@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use App\Models\Supplier;
 
 class Inventory extends Model
 {
@@ -12,6 +13,7 @@ class Inventory extends Model
     protected $fillable = [
         'product_code',
         'product_name',
+        'supplier_id',
         'quantity_on_hand',
         'quantity_reserved',
         'quantity_available',
@@ -20,6 +22,11 @@ class Inventory extends Model
         'unit_price',
         'last_updated',
     ];
+
+    public function supplier()
+    {
+        return $this->belongsTo(Supplier::class);
+    }
 
     protected $casts = [
         'last_updated' => 'datetime',

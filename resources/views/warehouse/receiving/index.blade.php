@@ -29,15 +29,19 @@
                             </thead>
                             <tbody class="divide-y divide-gray-200">
                                 @foreach($receivings as $receiving)
-                                    <tr class="hover:bg-gray-50">
+                                    @php $showUrl = route('warehouse.receiving.show', $receiving->id); @endphp
+                                    <tr onclick="window.location='{{ $showUrl }}'" class="hover:bg-gray-50 cursor-pointer">
                                         <td class="px-6 py-4 text-sm font-medium text-gray-900">{{ $receiving->receiving_code }}</td>
                                         <td class="px-6 py-4 text-sm text-gray-600">{{ $receiving->supplier_id ?? 'N/A' }}</td>
+                                        <td class="px-6 py-4 text-sm text-gray-600">{{ $receiving->receivingDetails_count ?? $receiving->receivingDetails->count() }}</td>
                                         <td class="px-6 py-4 text-sm text-gray-600">{{ $receiving->total_quantity }}</td>
                                         <td class="px-6 py-4 text-sm">
                                             <span class="inline-block px-2 py-1 text-xs font-medium rounded
                                                 @if($receiving->status === 'pending') bg-yellow-100 text-yellow-800
                                                 @elseif($receiving->status === 'in-progress') bg-blue-100 text-blue-800
-                                                @else bg-green-100 text-green-800
+                                                @elseif($receiving->status === 'completed') bg-green-100 text-green-800
+                                                @elseif($receiving->status === 'declined') bg-red-100 text-red-800
+                                                @else bg-gray-100 text-gray-800
                                                 @endif">
                                                 {{ ucfirst($receiving->status) }}
                                             </span>

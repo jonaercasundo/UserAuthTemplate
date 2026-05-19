@@ -4,6 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use App\Models\Supplier;
+use App\Models\User;
 
 class StockReceiving extends Model
 {
@@ -28,6 +30,11 @@ class StockReceiving extends Model
     public function receivingDetails()
     {
         return $this->hasMany(ReceivingDetail::class);
+    }
+
+    public function supplier()
+    {
+        return $this->belongsTo(Supplier::class);
     }
 
     public function receivedByUser()

@@ -16,7 +16,6 @@
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
     <body class="font-sans antialiased bg-[#F8F9FB] text-[#1B1B18] selection:bg-blue-100 selection:text-blue-700">
-        
         <!-- Animated Background Decoration -->
         <div class="fixed inset-0 z-[-1] pointer-events-none overflow-hidden">
             <div class="absolute top-0 left-1/4 w-[500px] h-[500px] bg-blue-100/30 blur-[120px] rounded-full animate-pulse"></div>
@@ -24,12 +23,10 @@
         </div>
 
         <div class="min-h-screen flex flex-col">
-            <!-- Modernized Navigation Wrapper -->
             <div class="sticky top-0 z-40">
                 @include('layouts.navigation')
             </div>
 
-            <!-- Flash Messages / Notifications -->
             <div class="max-w-7xl mx-auto w-full px-6 sm:px-8 lg:px-10 py-4">
                 @if ($errors->any())
                     <div class="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start gap-3">
@@ -71,20 +68,16 @@
                 @endif
             </div>
 
-            <!-- Page Heading -->
             @isset($header)
                 <header class="bg-white/70 backdrop-blur-md border-b border-gray-200/50">
                     <div class="max-w-7xl mx-auto py-8 px-6 sm:px-8 lg:px-10">
                         <div class="flex items-center justify-between gap-4 flex-wrap">
-                            <!-- Page Title with MCI Accent -->
                             <div class="space-y-1 flex-1">
                                 <h2 class="text-2xl md:text-3xl font-bold text-gray-900 tracking-tight">
                                     {{ $header }}
                                 </h2>
                                 <p class="text-xs font-medium text-blue-600 uppercase tracking-[0.2em]">MCI Management System</p>
                             </div>
-                            
-                            <!-- Optional Header Actions Slot -->
                             @isset($actions)
                                 <div class="flex items-center gap-3 flex-wrap justify-end">
                                     {{ $actions }}
@@ -95,19 +88,12 @@
                 </header>
             @endisset
 
-            <!-- Main Content Area -->
             <main class="flex-1 max-w-7xl mx-auto w-full py-10 px-6 sm:px-8 lg:px-10">
-                <!-- Content Animation Wrapper -->
                 <div class="transition-all duration-500 ease-in-out">
-                    @isset($slot)
-                        {{ $slot }}
-                    @else
-                        @yield('content')
-                    @endisset
+                    {{ $slot }}
                 </div>
             </main>
 
-            <!-- Footer -->
             <footer class="mt-auto max-w-7xl mx-auto w-full px-6 py-8 flex flex-col md:flex-row justify-between items-center text-[10px] uppercase tracking-widest text-gray-500 font-bold border-t border-gray-200/50 gap-4">
                 <div class="flex items-center gap-4 flex-wrap justify-center md:justify-start">
                     <span class="flex items-center gap-1.5">
@@ -121,7 +107,6 @@
             </footer>
         </div>
 
-        <!-- Auto-hide notifications after 5 seconds -->
         <script>
             document.addEventListener('DOMContentLoaded', function() {
                 const notifications = document.querySelectorAll('[class*="bg-green-50"], [class*="bg-red-50"], [class*="bg-yellow-50"]');

@@ -252,6 +252,45 @@
                     </div>
                 </div>
 
+                <!-- Inventory Management -->
+                <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition">
+                    <div class="bg-gradient-to-r from-slate-500 to-slate-600 px-6 py-4">
+                        <h3 class="text-lg font-semibold text-white">📦 Inventory</h3>
+                    </div>
+                    <div class="p-6">
+                        <p class="text-sm text-gray-600 mb-4">View the current stock and manage inventory items.</p>
+                        <a href="{{ route('warehouse.inventory.index') }}" class="inline-block bg-slate-600 text-white px-4 py-2 rounded-lg hover:bg-slate-700 transition text-sm font-medium">
+                            View Inventory
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Product Encode -->
+                <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition">
+                    <div class="bg-gradient-to-r from-emerald-500 to-emerald-600 px-6 py-4">
+                        <h3 class="text-lg font-semibold text-white">📝 Product Encode</h3>
+                    </div>
+                    <div class="p-6">
+                        <p class="text-sm text-gray-600 mb-4">Create and edit product codes and names for warehouse inventory.</p>
+                        <a href="{{ route('warehouse.settings.products') }}" class="inline-block bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 transition text-sm font-medium">
+                            Manage Products
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Supplier Encode -->
+                <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition">
+                    <div class="bg-gradient-to-r from-teal-500 to-teal-600 px-6 py-4">
+                        <h3 class="text-lg font-semibold text-white">🏷️ Supplier Encode</h3>
+                    </div>
+                    <div class="p-6">
+                        <p class="text-sm text-gray-600 mb-4">Add and manage suppliers used for receiving and inventory tracking.</p>
+                        <a href="{{ route('warehouse.settings.suppliers') }}" class="inline-block bg-teal-600 text-white px-4 py-2 rounded-lg hover:bg-teal-700 transition text-sm font-medium">
+                            Manage Suppliers
+                        </a>
+                    </div>
+                </div>
+
                 <!-- Serial Number Tracking -->
                 <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition">
                     <div class="bg-gradient-to-r from-teal-500 to-teal-600 px-6 py-4">

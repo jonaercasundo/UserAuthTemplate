@@ -6,6 +6,8 @@
     use App\Http\Controllers\Operations\WarehouseController;
     use App\Http\Controllers\Operations\DashboardController;
     use App\Http\Controllers\Warehouse\WarehouseManagementController;
+    use App\Http\Controllers\Warehouse\InventoryController;
+    use App\Http\Controllers\Warehouse\ProductSettingsController;
 
     /*
     |--------------------------------------------------------------------------
@@ -127,6 +129,14 @@
                     ->name('warehouse.receiving.index');
                 Route::get('/create', [WarehouseManagementController::class, 'createReceiving'])
                     ->name('warehouse.receiving.create');
+                Route::post('/', [WarehouseManagementController::class, 'storeReceiving'])
+                    ->name('warehouse.receiving.store');
+                Route::get('/{id}', [WarehouseManagementController::class, 'showReceivingDetail'])
+                    ->name('warehouse.receiving.show');
+                Route::post('/{id}/receive', [WarehouseManagementController::class, 'receiveItems'])
+                    ->name('warehouse.receiving.receive');
+                Route::post('/{id}/decline', [WarehouseManagementController::class, 'declineReceiving'])
+                    ->name('warehouse.receiving.decline');
             });
 
             // Stock Release
@@ -135,6 +145,12 @@
                     ->name('warehouse.release.index');
                 Route::get('/create', [WarehouseManagementController::class, 'createRelease'])
                     ->name('warehouse.release.create');
+                Route::post('/', [WarehouseManagementController::class, 'storeRelease'])
+                    ->name('warehouse.release.store');
+                Route::get('/{id}', [WarehouseManagementController::class, 'showReleaseDetail'])
+                    ->name('warehouse.release.show');
+                Route::post('/{id}/process', [WarehouseManagementController::class, 'processRelease'])
+                    ->name('warehouse.release.process');
             });
 
             // Warehouse Transfer
@@ -195,6 +211,53 @@
                     ->name('warehouse.serial.index');
                 Route::get('/{id}', [WarehouseManagementController::class, 'showSerialDetail'])
                     ->name('warehouse.serial.detail');
+            });
+
+            // Inventory Management
+            Route::prefix('inventory')->group(function () {
+                Route::get('/', [InventoryController::class, 'index'])
+                    ->name('warehouse.inventory.index');
+                Route::get('/create', [InventoryController::class, 'create'])
+                    ->name('warehouse.inventory.create');
+                Route::post('/', [InventoryController::class, 'store'])
+                    ->name('warehouse.inventory.store');
+                Route::get('/{id}', [InventoryController::class, 'show'])
+                    ->name('warehouse.inventory.show');
+                Route::get('/{id}/edit', [InventoryController::class, 'edit'])
+                    ->name('warehouse.inventory.edit');
+                Route::put('/{id}', [InventoryController::class, 'update'])
+                    ->name('warehouse.inventory.update');
+                Route::post('/{id}/import-costs', [InventoryController::class, 'importCosts'])
+                    ->name('warehouse.inventory.importCosts');
+                Route::delete('/{id}', [InventoryController::class, 'destroy'])
+                    ->name('warehouse.inventory.destroy');
+            });
+
+            // Settings
+            Route::prefix('settings')->group(function () {
+                Route::get('/products', [ProductSettingsController::class, 'index'])
+                    ->name('warehouse.settings.products');
+                Route::post('/products', [ProductSettingsController::class, 'store'])
+                    ->name('warehouse.settings.products.store');
+                Route::put('/products/{id}', [ProductSettingsController::class, 'update'])
+                    ->name('warehouse.settings.products.update');
+                Route::delete('/products/{id}', [ProductSettingsController::class, 'destroy'])
+                    ->name('warehouse.settings.products.destroy');
+                // Suppliers
+                Route::get('/suppliers', [\App\Http\Controllers\Warehouse\SupplierController::class, 'index'])
+                    ->name('warehouse.settings.suppliers');
+                Route::post('/suppliers', [\App\Http\Controllers\Warehouse\SupplierController::class, 'store'])
+                    ->name('warehouse.settings.suppliers.store');
+                Route::get('/suppliers/{id}/edit', [\App\Http\Controllers\Warehouse\SupplierController::class, 'edit'])
+                    ->name('warehouse.settings.suppliers.edit');
+                Route::get('/suppliers/{id}', [\App\Http\Controllers\Warehouse\SupplierController::class, 'show'])
+                    ->name('warehouse.settings.suppliers.show');
+                Route::post('/suppliers/{id}/products', [\App\Http\Controllers\Warehouse\SupplierController::class, 'storeProduct'])
+                    ->name('warehouse.settings.suppliers.products.store');
+                Route::put('/suppliers/{id}', [\App\Http\Controllers\Warehouse\SupplierController::class, 'update'])
+                    ->name('warehouse.settings.suppliers.update');
+                Route::delete('/suppliers/{id}', [\App\Http\Controllers\Warehouse\SupplierController::class, 'destroy'])
+                    ->name('warehouse.settings.suppliers.destroy');
             });
         });
 

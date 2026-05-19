@@ -4,7 +4,7 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
 
-        <title>{{ config('app.name', 'Laravel') }}</title>
+        <title>{{ config('app.name', 'Metro-Mobilia App') }}</title>
 
         @fonts
 
@@ -25,10 +25,10 @@
             <!-- Subtle Glow Background -->
             <div class="absolute -inset-1 bg-gradient-to-r from-blue-600 to-indigo-500 rounded-2xl blur opacity-25 group-hover:opacity-50 transition duration-1000"></div>  
                 <div class="relative w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-700 rounded-xl flex items-center justify-center shadow-lg border border-white/20">
-                    <span class="text-white font-extrabold text-sm tracking-tighter uppercase italic">MCI</span>
+                    <span class="text-white font-extrabold text-sm tracking-tighter uppercase italic">MMC</span>
                 </div>
             </div>    
-            <span class="text-xl font-bold tracking-tight">Micro Core Innovation Technologies Corporation</span>
+            <span class="text-xl font-bold tracking-tight">Metro-Mobilia Corporation</span>
             </div>
             <div class="flex items-center gap-6">
                 @if (Route::has('login'))
@@ -140,7 +140,7 @@
 
         <!-- Footer -->
         <footer class="text-center py-12 border-t border-gray-100">
-            <p class="text-sm text-gray-400">&copy; {{ date('Y') }} MCI Business Manager. All rights reserved.</p>
+            <p class="text-sm text-gray-400">&copy; {{ date('Y') }} Metro-Mobilia Corporation. All rights reserved.</p>
         </footer>
     </body>
 </html>

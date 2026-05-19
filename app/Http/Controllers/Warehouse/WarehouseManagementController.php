@@ -18,9 +18,12 @@ use App\Models\BarcodeScan;
 use App\Models\QRCodeScan;
 use App\Models\BatchTracking;
 use App\Models\BatchTrackingHistory;
+use App\Models\Inventory;
 use App\Models\SerialNumberTracking;
 use App\Models\SerialScanHistory;
+use App\Models\Supplier;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class WarehouseManagementController extends Controller
 {
@@ -59,13 +62,176 @@ class WarehouseManagementController extends Controller
     // Stock Receiving
     public function showReceiving()
     {
-        $receivings = StockReceiving::orderBy('created_at', 'desc')->paginate(10);
+        $receivings = StockReceiving::withCount('receivingDetails')
+            ->orderBy('created_at', 'desc')
+            ->paginate(10);
+
         return view('warehouse.receiving.index', ['receivings' => $receivings]);
     }
 
     public function createReceiving()
     {
-        return view('warehouse.receiving.create');
+        $inventoryProducts = Inventory::with('supplier')
+            ->orderBy('product_name')
+            ->get(['product_code', 'product_name', 'supplier_id']);
+
+        $suppliers = Supplier::orderBy('name')->get(['id', 'name']);
+
+        return view('warehouse.receiving.create', [
+            'inventoryProducts' => $inventoryProducts,
+            'suppliers' => $suppliers,
+        ]);
+    }
+
+    public function showReceivingDetail($id)
+    {
+        $receiving = StockReceiving::with('receivingDetails')
+            ->findOrFail($id);
+
+        $totalCost = $receiving->receivingDetails->sum(function ($detail) {
+            return ($detail->unit_price ?? 0) * ($detail->quantity_received ?? 0);
+        });
+
+        return view('warehouse.receiving.show', [
+            'receiving' => $receiving,
+            'totalCost' => $totalCost,
+        ]);
+    }
+
+    public function receiveItems(Request $request, $id)
+    {
+        $receiving = StockReceiving::with('receivingDetails')
+            ->findOrFail($id);
+
+        if ($receiving->status !== 'pending') {
+            return redirect()->route('warehouse.receiving.show', $receiving->id)
+                ->with('warning', 'Only pending receivings can be received.');
+        }
+
+        DB::transaction(function () use ($receiving) {
+            foreach ($receiving->receivingDetails as $detail) {
+                $inventory = Inventory::where('product_code', $detail->product_code)->first();
+
+                $recvQty = (int) ($detail->quantity_received ?? 0);
+                $recvPrice = (float) ($detail->unit_price ?? 0);
+
+                if ($inventory) {
+                    $existingQty = (int) $inventory->quantity_on_hand;
+                    $existingPrice = (float) ($inventory->unit_price ?? 0);
+
+                    $newQty = $existingQty + $recvQty;
+
+                    if ($newQty > 0) {
+                        $newUnitPrice = (($existingQty * $existingPrice) + ($recvQty * $recvPrice)) / $newQty;
+                    } else {
+                        $newUnitPrice = $existingPrice;
+                    }
+
+                    $inventory->quantity_on_hand = $newQty;
+                    $inventory->quantity_available += $recvQty;
+                    $inventory->unit_price = $newUnitPrice;
+                    $inventory->last_updated = now();
+                    $inventory->save();
+                } else {
+                    Inventory::create([
+                        'product_code' => $detail->product_code,
+                        'product_name' => $detail->product_name,
+                        'quantity_on_hand' => $recvQty,
+                        'quantity_reserved' => 0,
+                        'quantity_available' => $recvQty,
+                        'minimum_stock_level' => 0,
+                        'reorder_quantity' => 0,
+                        'unit_price' => $recvPrice,
+                        'last_updated' => now(),
+                    ]);
+                }
+
+                $detail->update([
+                    'status' => 'received',
+                ]);
+            }
+
+            $receiving->update([
+                'status' => 'completed',
+            ]);
+        });
+
+        return redirect()->route('warehouse.receiving.show', $receiving->id)
+            ->with('success', 'Receiving has been completed and inventory updated.');
+    }
+
+    public function declineReceiving(Request $request, $id)
+    {
+        $receiving = StockReceiving::findOrFail($id);
+
+        if ($receiving->status !== 'pending') {
+            return redirect()->route('warehouse.receiving.show', $receiving->id)
+                ->with('warning', 'Only pending receivings can be declined.');
+        }
+
+        $receiving->update([
+            'status' => 'declined',
+        ]);
+
+        return redirect()->route('warehouse.receiving.show', $receiving->id)
+            ->with('success', 'Receiving has been declined.');
+    }
+
+    public function storeReceiving(Request $request)
+    {
+        $validated = $request->validate([
+            'purchase_order_number' => 'nullable|string',
+            'supplier_id' => 'nullable|exists:suppliers,id',
+            'notes' => 'nullable|string',
+            'items' => 'required|array|min:1',
+            'items.*.product_code' => 'required|string',
+            'items.*.product_name' => 'required|string',
+            'items.*.supplier_id' => 'nullable|exists:suppliers,id',
+            'items.*.quantity_ordered' => 'required|integer|min:0',
+            'items.*.quantity_received' => 'required|integer|min:0',
+            'items.*.batch_number' => 'nullable|string',
+            'items.*.expiry_date' => 'nullable|date',
+            'items.*.unit_price' => 'nullable|numeric|min:0',
+        ]);
+
+        // Generate unique receiving code
+        $receiving_code = 'RCV-' . date('YmdHis') . '-' . rand(1000, 9999);
+
+        // Calculate totals
+        $totalItems = count($validated['items']);
+        $totalQuantity = array_sum(array_column($validated['items'], 'quantity_received'));
+
+        // Create receiving record
+        $receiving = StockReceiving::create([
+            'receiving_code' => $receiving_code,
+            'purchase_order_number' => $validated['purchase_order_number'] ?? null,
+            'supplier_id' => $validated['supplier_id'] ?? null,
+            'notes' => $validated['notes'] ?? null,
+            'status' => 'pending',
+            'received_by' => auth()->id(),
+            'receiving_date' => now(),
+            'total_items' => $totalItems,
+            'total_quantity' => $totalQuantity,
+        ]);
+
+        // Create receiving details
+        foreach ($validated['items'] as $item) {
+            ReceivingDetail::create([
+                'stock_receiving_id' => $receiving->id,
+                'product_code' => $item['product_code'],
+                'product_name' => $item['product_name'],
+                'supplier_id' => $item['supplier_id'] ?? null,
+                'quantity_ordered' => $item['quantity_ordered'] ?? 0,
+                'quantity_received' => $item['quantity_received'] ?? 0,
+                'batch_number' => $item['batch_number'] ?? null,
+                'expiry_date' => $item['expiry_date'] ?? null,
+                'unit_price' => $item['unit_price'] ?? null,
+                'status' => 'pending',
+            ]);
+        }
+
+        return redirect()->route('warehouse.receiving.index')
+            ->with('success', 'Stock receiving created successfully with ' . $totalItems . ' item(s)!');
     }
 
     // Stock Release
@@ -77,7 +243,117 @@ class WarehouseManagementController extends Controller
 
     public function createRelease()
     {
-        return view('warehouse.release.create');
+        $inventoryProducts = Inventory::with('supplier')
+            ->orderBy('product_name')
+            ->get(['product_code', 'product_name', 'supplier_id']);
+
+        return view('warehouse.release.create', [
+            'inventoryProducts' => $inventoryProducts,
+        ]);
+    }
+
+    public function storeRelease(Request $request)
+    {
+        $validated = $request->validate([
+            'release_type' => 'required|in:customer-order,internal-use,return,disposal',
+            'reference_number' => 'nullable|string',
+            'notes' => 'nullable|string',
+            'items' => 'required|array|min:1',
+            'items.*.product_code' => 'required|string',
+            'items.*.product_name' => 'required|string',
+            'items.*.supplier_id' => 'nullable|exists:suppliers,id',
+            'items.*.quantity_to_release' => 'required|integer|min:0',
+            'items.*.batch_number' => 'nullable|string',
+            'items.*.serial_number' => 'nullable|string',
+            'items.*.notes' => 'nullable|string',
+        ]);
+
+        $releaseCode = 'RLS-' . date('YmdHis') . '-' . rand(1000, 9999);
+        $totalItems = count($validated['items']);
+        $totalQuantity = array_sum(array_column($validated['items'], 'quantity_to_release'));
+
+        $release = StockRelease::create([
+            'release_code' => $releaseCode,
+            'release_type' => $validated['release_type'],
+            'reference_number' => $validated['reference_number'] ?? null,
+            'notes' => $validated['notes'] ?? null,
+            'status' => 'pending',
+            'released_by' => auth()->id(),
+            'release_date' => now(),
+            'total_items' => $totalItems,
+            'total_quantity' => $totalQuantity,
+        ]);
+
+        foreach ($validated['items'] as $item) {
+            ReleaseDetail::create([
+                'stock_release_id' => $release->id,
+                'product_code' => $item['product_code'],
+                'product_name' => $item['product_name'],
+                'supplier_id' => $item['supplier_id'] ?? null,
+                'quantity_to_release' => $item['quantity_to_release'],
+                'quantity_released' => 0,
+                'batch_number' => $item['batch_number'] ?? null,
+                'serial_number' => $item['serial_number'] ?? null,
+                'status' => 'pending',
+                'notes' => $item['notes'] ?? null,
+            ]);
+        }
+
+        return redirect()->route('warehouse.release.index')
+            ->with('success', 'Stock release created successfully with ' . $totalItems . ' item(s).');
+    }
+
+    public function showReleaseDetail($id)
+    {
+        $release = StockRelease::with('releaseDetails')
+            ->findOrFail($id);
+
+        return view('warehouse.release.show', [
+            'release' => $release,
+        ]);
+    }
+
+    public function processRelease(Request $request, $id)
+    {
+        $release = StockRelease::with('releaseDetails')
+            ->findOrFail($id);
+
+        if ($release->status !== 'pending') {
+            return redirect()->route('warehouse.release.show', $release->id)
+                ->with('warning', 'Only pending releases can be processed.');
+        }
+
+        $insufficient = $release->releaseDetails->filter(function ($detail) {
+            $inventory = Inventory::where('product_code', $detail->product_code)->first();
+            return !$inventory || $inventory->quantity_available < $detail->quantity_to_release;
+        });
+
+        if ($insufficient->isNotEmpty()) {
+            return redirect()->route('warehouse.release.show', $release->id)
+                ->with('warning', 'Some items do not have enough available stock to release.');
+        }
+
+        DB::transaction(function () use ($release) {
+            foreach ($release->releaseDetails as $detail) {
+                $inventory = Inventory::where('product_code', $detail->product_code)->first();
+                $inventory->quantity_on_hand -= $detail->quantity_to_release;
+                $inventory->quantity_available -= $detail->quantity_to_release;
+                $inventory->last_updated = now();
+                $inventory->save();
+
+                $detail->update([
+                    'quantity_released' => $detail->quantity_to_release,
+                    'status' => 'released',
+                ]);
+            }
+
+            $release->update([
+                'status' => 'released',
+            ]);
+        });
+
+        return redirect()->route('warehouse.release.show', $release->id)
+            ->with('success', 'Release processed successfully and inventory updated.');
     }
 
     // Warehouse Transfer

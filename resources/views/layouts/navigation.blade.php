@@ -7,10 +7,10 @@
                 <div class="shrink-0 flex items-center">
                     <a href="{{ route('dashboard') }}" class="group flex items-center gap-3">
                         <div class="w-10 h-10 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-blue-500/20 transition-all duration-300">
-                            <span class="text-white font-black text-sm tracking-tighter italic">MCI</span>
+                            <span class="text-white font-black text-sm tracking-tighter italic">MMC</span>
                         </div>
                         <div class="hidden lg:block">
-                            <p class="text-sm font-bold text-gray-900 leading-none">Management</p>
+                            <p class="text-sm font-bold text-gray-900 leading-none">Metro-Mobilia App</p>
                             <p class="text-[10px] font-bold text-blue-600 uppercase tracking-widest mt-1">Command Center</p>
                         </div>
                     </a>

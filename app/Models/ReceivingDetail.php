@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use App\Models\Supplier;
 
 class ReceivingDetail extends Model
 {
@@ -13,6 +14,7 @@ class ReceivingDetail extends Model
         'stock_receiving_id',
         'product_code',
         'product_name',
+        'supplier_id',
         'quantity_ordered',
         'quantity_received',
         'batch_number',
@@ -30,5 +32,10 @@ class ReceivingDetail extends Model
     public function stockReceiving()
     {
         return $this->belongsTo(StockReceiving::class);
+    }
+
+    public function supplier()
+    {
+        return $this->belongsTo(Supplier::class);
     }
 }
